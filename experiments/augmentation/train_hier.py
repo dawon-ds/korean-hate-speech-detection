@@ -114,12 +114,9 @@ def main():
         record = {
             "epoch": epoch,
             "train_loss": float(train_loss),
+            "val_coarse_accuracy": float(coarse_metrics["accuracy"]),
             "val_coarse_micro_f1": float(coarse_metrics["micro_f1"]),
             "val_coarse_macro_f1": float(coarse_metrics["macro_f1"]),
-            "val_coarse_hamming": float(coarse_metrics["hamming_loss"]),
-            "val_coarse_jaccard_micro": float(coarse_metrics["jaccard_micro"]),
-            "val_coarse_jaccard_macro": float(coarse_metrics["jaccard_macro"]),
-            "val_coarse_subset_acc": float(coarse_metrics["subset_accuracy"]),
             "val_coarse_lrap": float(coarse_metrics["lrap"]),
             "val_fine_micro_f1": float(fine_metrics["micro_f1"]),
             "val_fine_macro_f1": float(fine_metrics["macro_f1"]),
