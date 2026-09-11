@@ -82,6 +82,10 @@ The final presentation defines four main obfuscation strategies:
 
 These rules are designed to improve robustness to spelling variation and intentional obfuscation in online text. The implementation is available in `experiments/augmentation/src/augment.py`.
 
+<p align="center">
+  <img src="augmentation_rules.png" alt="Robustness-oriented augmentation rules" width="760">
+</p>
+
 ## Flat vs. Hierarchical Classification
 
 The final stage compares two prediction structures.
@@ -115,6 +119,10 @@ For comparability with the recorded project experiments, LRAP is retained for bo
 | Flat + Augmentation | 0.7299 | 0.7094 | 0.8519 | 0.7085 | **0.6976** | — |
 | Hierarchical + Augmentation | **0.7415** | 0.7163 | 0.8577 | **0.7292** | 0.6610 | 0.9569 |
 
+<p align="center">
+  <img src="model_results.png" alt="Recorded model results" width="900">
+</p>
+
 ### Interpretation
 
 - **Hierarchical + augmentation achieved the highest recorded Coarse Macro F1 (0.7415) and Fine Macro F1 (0.7292).**
@@ -134,6 +142,8 @@ The project also included a web demo for abusive-chat filtering, connecting the 
 ```text
 korean-hate-speech-detection/
 ├── README.md
+├── augmentation_rules.png
+├── model_results.png
 ├── requirements.txt
 ├── config/
 │   └── base.yaml
