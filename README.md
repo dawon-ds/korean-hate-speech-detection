@@ -91,18 +91,18 @@ For example:
 
 | Setting | Coarse Macro F1 | Coarse Micro F1 | Coarse LRAP | Fine Macro F1 | Fine Micro F1 | Fine LRAP |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: |
-| Flat | **0.7395** | **0.7188** | **0.8584** | 0.7073 | 0.6915 | **0.9603** |
-| Flat + Augmentation | 0.7299 | 0.7094 | 0.8519 | 0.7085 | **0.6976** | — |
-| Hierarchical | 0.7415* | 0.7163* | 0.8577* | 0.7258 | 0.6552 | 0.9560 |
+| Flat | 0.7395 | 0.7188 | 0.8584 | 0.7073 | 0.6915 | 0.9603 |
+| Flat + Augmentation | 0.7299 | 0.7094 | 0.8519 | 0.7085 | 0.6976 | — |
+| Hierarchical | — | — | — | 0.7258 | 0.6552 | 0.9560 |
 | Hierarchical + Augmentation | **0.7415** | 0.7163 | 0.8577 | **0.7292** | 0.6610 | 0.9569 |
 
-\*The project records for the hierarchical experiments contain overlapping coarse-level values; the table preserves the values documented in the final materials rather than inferring missing runs.
+Missing values are left blank rather than inferred.
 
 ### Interpretation
 
 - Augmentation did **not** improve every metric consistently.
 - The hierarchical + augmentation setting produced the strongest recorded **fine Macro F1 (0.7292)**.
-- Flat classification retained stronger **fine Micro F1 / LRAP** in the recorded experiments.
+- Flat classification retained stronger recorded **fine Micro F1 / LRAP**.
 - The project therefore treats augmentation and hierarchy as trade-offs rather than claiming a universal improvement.
 
 ## Repository Structure
