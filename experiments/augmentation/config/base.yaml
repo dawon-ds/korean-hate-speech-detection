@@ -6,15 +6,15 @@ data:
   max_len: 128
   train_ratio: 0.8
   val_ratio: 0.1
-  # 나머지 0.1은 test
+  # remaining 0.1 is used for test
 
 model:
   plm_name: "klue/bert-base"
   num_coarse: 3
   num_fine: 8
-  hierarchical: true         # flat: false / hier: true
+  hierarchical: true
   lambda_fine: 1.0
-  lambda_hier: 1.0             # hier 모델일 때 parent-child 위반 penalty
+  lambda_hier: 1.0
 
 train:
   batch_size: 32
@@ -22,9 +22,9 @@ train:
   lr: 2e-5
   weight_decay: 0.01
   warmup_ratio: 0.1
+  patience: 3
 
 augment:
   use_augment: true
   max_aug_per_sample: 2
-  apply_to_hate_only: true     # hate_label == "hate"만 증강
-
+  apply_to_hate_only: true
