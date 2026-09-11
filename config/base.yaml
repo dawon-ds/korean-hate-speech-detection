@@ -1,0 +1,28 @@
+seed: 42
+device: "cuda"
+
+data:
+  csv_path: "data/merged_dataset_v1.1.csv"
+  max_len: 128
+  train_ratio: 0.8
+  val_ratio: 0.1
+
+model:
+  plm_name: "klue/bert-base"
+  num_coarse: 3
+  num_fine: 8
+  hierarchical: true
+  lambda_fine: 1.0
+  lambda_hier: 1.0
+
+train:
+  batch_size: 32
+  num_epochs: 7
+  lr: 2e-5
+  weight_decay: 0.01
+  warmup_ratio: 0.1
+
+augment:
+  use_augment: true
+  max_aug_per_sample: 2
+  apply_to_hate_only: true
