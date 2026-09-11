@@ -1,0 +1,28 @@
+data:
+  input_csv: "./data/combined.csv" 
+  text_col: "문장"
+  label_col: "labels"
+  max_length: 128
+  random_state: 42
+  train_mode: "hatescore_plus_unsmile"  # "hatescore_plus_unsmile" 또는 "unsmile_only"
+
+
+model:
+  model_name: "klue/roberta-base"
+  num_labels: 10
+
+train:
+  learning_rate: 2e-5
+  num_train_epochs: 3
+
+  weight_decay: 0.01
+  warmup_ratio: 0.1
+  logging_steps: 50
+  eval_strategy: "epoch"
+  save_strategy: "epoch"
+  metric_for_best_model: "lrap"
+  seed: 42
+  output_dir: "model/dummy"          # 아무거나, 안 씀
+  logging_dir: "log/dummy"           # 아무거나, 안 씀
+  per_device_train_batch_size: 32    # 안 씀 (experiments에서 덮어씀)
+  per_device_eval_batch_size: 64   
