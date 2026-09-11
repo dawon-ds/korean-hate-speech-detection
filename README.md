@@ -113,7 +113,9 @@ The final modeling stage compares two structures.
 
 ### Hierarchical model
 
-The hierarchical model adds a consistency penalty between coarse and fine predictions. For example, a sample predicted as clean should not simultaneously activate fine hate categories, while an offensive/hate prediction should remain consistent with its fine-label outputs.
+The hierarchical model adds a differentiable consistency loss between coarse and fine prediction probabilities. It penalizes cases where the model assigns a high clean probability while also activating fine hate categories, as well as cases where toxic coarse predictions are paired with no fine hate category.
+
+Both flat and hierarchical training scripts select the best validation checkpoint by fine-grained Macro F1 and apply early stopping using the configured patience value.
 
 The corresponding training entry points are:
 
@@ -137,6 +139,8 @@ experiments/augmentation/train_hier.py
 - Hierarchical + augmentation produced the strongest recorded **fine Macro F1 (0.7292)**.
 - Flat classification retained stronger recorded **fine Micro F1 / LRAP**.
 - The results therefore indicate trade-offs between augmentation, hierarchical consistency, and different evaluation metrics rather than a universal improvement.
+
+The table above reflects the recorded project experiment results. The public repository has since received code-quality and training-stability fixes, so rerunning the current code may not reproduce the historical values exactly.
 
 ## Repository Structure
 
@@ -207,6 +211,8 @@ For the augmentation experiments:
 python experiments/augmentation/train_flat.py
 python experiments/augmentation/train_hier.py
 ```
+
+The augmentation scripts resolve their configuration, dataset, log, and checkpoint paths relative to `experiments/augmentation/`, so the commands above can be run from the repository root.
 
 The augmentation configuration currently defaults to CUDA. Change `device: "cuda"` to `device: "cpu"` in `experiments/augmentation/config/base.yaml` when running without a CUDA-capable GPU.
 
