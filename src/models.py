@@ -59,11 +59,11 @@ class FlatHateModel(nn.Module):
 
 
 class HierHateModel(nn.Module):
-    """Hierarchical classifier with coarse/fine consistency penalty.
+    """Hierarchical classifier with differentiable coarse/fine consistency loss.
 
     coarse: 0=clean, 1=offensive, 2=hate
     fine: 8-way multi-label classification
-    loss: CE + lambda_fine * BCE + lambda_hier * hierarchy penalty
+    loss: CE + lambda_fine * BCE + lambda_hier * consistency loss
     """
 
     def __init__(
@@ -109,20 +109,23 @@ class HierHateModel(nn.Module):
             loss_coarse = self.crit_coarse(logits_coarse, label_coarse)
             loss_fine = self.crit_fine(logits_fine, label_fine)
 
-            with torch.no_grad():
-                coarse_pred = torch.argmax(logits_coarse, dim=-1)
-                fine_prob = torch.sigmoid(logits_fine)
-                fine_bin = (fine_prob > 0.5).float()
+            coarse_prob = torch.softmax(logits_coarse, dim=-1)
+            fine_prob = torch.sigmoid(logits_fine)
 
-            mask_clean = (coarse_pred == 0).float().unsqueeze(1)
-            viol_clean = (mask_clean * fine_bin).sum(dim=1)
+            clean_prob = coarse_prob[:, 0]
+            toxic_prob = coarse_prob[:, 1:].sum(dim=1)
+            no_fine_prob = torch.prod(1.0 - fine_prob, dim=1)
+            any_fine_prob = 1.0 - no_fine_prob
 
-            mask_toxic = (coarse_pred > 0).float()
-            no_fine = (fine_bin.sum(dim=1) == 0).float()
-            viol_toxic = mask_toxic * no_fine
+            clean_with_fine = clean_prob * any_fine_prob
+            toxic_without_fine = toxic_prob * no_fine_prob
+            hier_penalty = (clean_with_fine + toxic_without_fine).mean()
 
-            hier_penalty = (viol_clean + viol_toxic).mean()
-            loss = loss_coarse + self.lambda_fine * loss_fine + self.lambda_hier * hier_penalty
+            loss = (
+                loss_coarse
+                + self.lambda_fine * loss_fine
+                + self.lambda_hier * hier_penalty
+            )
 
             outputs["loss"] = loss
             outputs["loss_coarse"] = loss_coarse
