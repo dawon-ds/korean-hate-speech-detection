@@ -2,7 +2,7 @@
 
 **Multi-label Korean NLP Classification with PLM Comparison, Lexicon Augmentation, and Hierarchical Modeling**
 
-This repository is a cleaned portfolio version of a team project on **Korean hate-speech classification**. The project compares Korean pretrained language models, studies the effect of HITL and lexicon-based augmentation, and evaluates both flat and hierarchical classification settings.
+This project explores Korean hate-speech classification through pretrained language model comparison, dataset integration, robustness-oriented text augmentation, and flat vs. hierarchical classification.
 
 > **Task:** Korean online text → coarse toxicity class + fine-grained hate categories
 
@@ -11,21 +11,21 @@ This repository is a cleaned portfolio version of a team project on **Korean hat
 - **Period:** 2025
 - **Task:** Korean hate-speech / abusive-language classification
 - **Datasets:** UnSmile + HateScore
-- **Models explored:** BERT, ELECTRA, RoBERTa
+- **Models:** BERT, ELECTRA, RoBERTa
 - **Framework:** PyTorch + Hugging Face Transformers
 - **Evaluation:** Macro F1, Micro F1, LRAP
-- **Additional work:** HITL data experiment, Hybrid Lexicon augmentation, Flat vs Hierarchical modeling, Web Demo
+- **Experiments:** PLM comparison, HITL, Hybrid Lexicon augmentation, Flat vs. Hierarchical modeling
 
 ## Problem
 
-Korean hate speech is difficult to classify because harmful expressions can be indirect, obfuscated, context-dependent, or associated with multiple target groups at once. The project therefore explored more than a single baseline classifier:
+Korean hate speech is difficult to classify because harmful expressions can be indirect, obfuscated, context-dependent, or associated with multiple target groups. The project therefore explored several directions beyond a single baseline classifier:
 
-1. compare Korean pretrained language models,
-2. test additional HITL data,
-3. construct a hybrid hate-expression lexicon,
-4. apply robustness-oriented text augmentation,
-5. compare flat and hierarchical prediction structures,
-6. build a simple abusive-chat filtering demo.
+1. comparison of Korean pretrained language models,
+2. integration of UnSmile and HateScore data,
+3. HITL neutral-data experiments,
+4. construction of a hybrid hate-expression lexicon,
+5. robustness-oriented text augmentation,
+6. comparison of flat and hierarchical prediction structures.
 
 ## Dataset
 
@@ -34,25 +34,62 @@ The experiments used two Korean hate-speech datasets:
 - **UnSmile**
 - **HateScore**
 
-The baseline pipeline supports training with UnSmile alone or with a combined UnSmile + HateScore training set. Large raw datasets are intentionally **not included** in this public repository.
+The baseline pipeline supports either UnSmile-only training or a combined UnSmile + HateScore training set. `build_combined_dataset.py` maps HateScore labels to the UnSmile schema and creates the combined training data.
+
+Large raw datasets are not included in this repository. Place the required dataset files under the corresponding experiment `data/` directory before running the scripts.
+
+### Baseline data
+
+The baseline experiment uses files such as:
+
+```text
+unsmile_train.csv
+unsmile_valid.csv
+hatescore.csv
+train_hatescore_unsmile.csv
+```
+
+The training code uses the Korean text column `문장` and a 10-class label mapping consisting of clean, abusive language, and hate-target categories.
+
+### Augmentation data
+
+The augmentation experiment expects:
+
+```text
+merged_dataset_v1.1.csv
+```
+
+under `experiments/augmentation/data/`, together with the lexical resources required by the augmentation pipeline when applicable.
 
 ## Baseline PLM Experiments
 
-The baseline code compares Korean pretrained language models such as:
+The baseline experiment compares Korean pretrained language models including:
 
 - `klue/bert-base`
 - `monologg/koelectra-base-v3-discriminator`
 - `klue/roberta-base`
 
-An additional ALBERT experiment also remained in the development code, although the final report/presentation focused on the main Korean PLM comparisons.
+An ALBERT configuration is also retained in the experiment code. The training script evaluates combinations of model architecture and hyperparameters and records test metrics and training logs.
+
+The default baseline configuration is:
+
+```text
+experiments/baseline/config/text_classification.yaml
+```
+
+and the main training entry point is:
+
+```text
+experiments/baseline/scripts/train_baseline.py
+```
 
 ## HITL Experiment
 
-Human-in-the-loop neutral data was added to examine whether more ambiguous non-hate examples would improve the decision boundary. The project logs did **not** show a clear overall F1/LRAP improvement, although inference examples suggested possible benefits for some ambiguous neutral/hate cases.
+Human-in-the-loop neutral data was added to examine whether more ambiguous non-hate examples would improve the decision boundary. The recorded experiments did **not** show a clear overall F1/LRAP improvement, although inference examples suggested possible benefits for some ambiguous neutral/hate cases.
 
 ## Hybrid Lexicon & Robustness Augmentation
 
-The augmentation pipeline combined:
+The augmentation pipeline combines:
 
 - manually curated hate-expression lexicon entries,
 - automatically mined seed terms,
@@ -62,13 +99,11 @@ The augmentation pipeline combined:
 - numeric substitutions,
 - prefix/suffix variations and other obfuscation patterns.
 
-The goal was not simply to increase dataset size, but to make the classifier more robust to the kinds of spelling variation and obfuscation often found in online text.
+The goal is to improve robustness to spelling variation and intentional obfuscation commonly found in online text. The implementation is available in `experiments/augmentation/src/augment.py`; large lexical resource files are excluded from the repository.
 
-> The full lexicon is omitted from this portfolio repository. The original team code contains the complete augmentation implementation and lexical resources.
+## Flat vs. Hierarchical Classification
 
-## Flat vs Hierarchical Classification
-
-The final modeling stage compared two structures.
+The final modeling stage compares two structures.
 
 ### Flat model
 
@@ -78,16 +113,16 @@ The final modeling stage compared two structures.
 
 ### Hierarchical model
 
-The hierarchical model adds a consistency penalty between coarse and fine predictions.
+The hierarchical model adds a consistency penalty between coarse and fine predictions. For example, a sample predicted as clean should not simultaneously activate fine hate categories, while an offensive/hate prediction should remain consistent with its fine-label outputs.
 
-For example:
+The corresponding training entry points are:
 
-- a sample predicted as **clean** should not simultaneously activate fine hate categories,
-- a sample predicted as **offensive/hate** should not return an empty fine-label set.
+```text
+experiments/augmentation/train_flat.py
+experiments/augmentation/train_hier.py
+```
 
 ## Results
-
-### Main comparison
 
 | Setting | Coarse Macro F1 | Coarse Micro F1 | Coarse LRAP | Fine Macro F1 | Fine Micro F1 | Fine LRAP |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: |
@@ -99,9 +134,9 @@ For example:
 ### Interpretation
 
 - Augmentation did **not** improve every metric consistently.
-- The hierarchical + augmentation setting produced the strongest recorded **fine Macro F1 (0.7292)**.
+- Hierarchical + augmentation produced the strongest recorded **fine Macro F1 (0.7292)**.
 - Flat classification retained stronger recorded **fine Micro F1 / LRAP**.
-- The project therefore treats augmentation and hierarchy as trade-offs rather than claiming a universal improvement.
+- The results therefore indicate trade-offs between augmentation, hierarchical consistency, and different evaluation metrics rather than a universal improvement.
 
 ## Repository Structure
 
@@ -109,7 +144,6 @@ For example:
 korean-hate-speech-detection/
 ├── README.md
 ├── requirements.txt
-├── .gitignore
 ├── config/
 │   └── base.yaml
 ├── src/
@@ -118,9 +152,36 @@ korean-hate-speech-detection/
 │   ├── models.py
 │   ├── trainer.py
 │   └── infer.py
-└── docs/
-    ├── augmentation.md
-    └── results.md
+├── docs/
+│   ├── augmentation.md
+│   └── results.md
+└── experiments/
+    ├── baseline/
+    │   ├── config/
+    │   │   └── text_classification.yaml
+    │   ├── scripts/
+    │   │   ├── train_baseline.py
+    │   │   └── inference.py
+    │   ├── src/
+    │   │   └── dataset_text_only.py
+    │   └── utils/
+    │       ├── build_combined_dataset.py
+    │       ├── unsmile_train_valid_split.py
+    │       └── utils.py
+    └── augmentation/
+        ├── config/
+        │   └── base.yaml
+        ├── train_flat.py
+        ├── train_hier.py
+        ├── infer.py
+        └── src/
+            ├── augment.py
+            ├── config.py
+            ├── dataset.py
+            ├── metrics.py
+            ├── models.py
+            ├── trainer.py
+            └── utils.py
 ```
 
 ## Installation
@@ -129,22 +190,31 @@ korean-hate-speech-detection/
 pip install -r requirements.txt
 ```
 
-## Data Format
+## Running the Experiments
 
-The cleaned training pipeline expects columns corresponding to:
+Prepare the required datasets in each experiment's `data/` directory first.
 
-```text
-text, hate_label, gender, LGBT, age, region, race, religion, socioeconomic, etc
+For the baseline pipeline, build the combined UnSmile + HateScore dataset when needed and then run the PLM experiments:
+
+```bash
+python experiments/baseline/utils/build_combined_dataset.py
+python experiments/baseline/scripts/train_baseline.py
 ```
 
-The exact preprocessing depends on the source dataset and is intentionally kept outside the public portfolio repository because the original project used externally sourced datasets.
+For the augmentation experiments:
+
+```bash
+python experiments/augmentation/train_flat.py
+python experiments/augmentation/train_hier.py
+```
+
+The augmentation configuration currently defaults to CUDA. Change `device: "cuda"` to `device: "cpu"` in `experiments/augmentation/config/base.yaml` when running without a CUDA-capable GPU.
 
 ## Notes
 
-- This is a **team project** and the repository documents the overall technical pipeline.
-- The original report/presentation did not specify member-level implementation ownership, so this repository does not attribute every component to the repository owner individually.
-- Large datasets, checkpoints, logs, and the full lexical resource are excluded.
-- Some development code included experiments that were later removed from the final report; this portfolio version focuses on the final project narrative and verified results.
+- Large datasets, model checkpoints, training logs, and large lexical resource files are excluded from the repository.
+- The repository includes preprocessing, baseline PLM experiments, augmentation, flat/hierarchical training, evaluation, and inference code used across the project experiments.
+- Some exploratory model configurations remain in the code even when they were not emphasized in the final comparison.
 
 ## Tech Stack
 
