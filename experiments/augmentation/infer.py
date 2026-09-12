@@ -1,11 +1,12 @@
-# interactive_infer.py
+import argparse
+from pathlib import Path
+
 import torch
 from transformers import AutoTokenizer
 
 from src.config import load_config
 from src.models import FlatHateModel, HierHateModel
 
-# coarse / fine 라벨 이름 정의
 COARSE_ID2LABEL = ["clean", "offensive", "hate"]
 FINE_ID2LABEL = [
     "gender",
@@ -18,20 +19,49 @@ FINE_ID2LABEL = [
     "etc",
 ]
 
-# === 여기만 본인 경로로 고쳐서 사용 ===
-CHECKPOINT_PATH = "checkpoints/flat_best.pt"  # 또는 hier_best.pt 등
+EXPERIMENT_DIR = Path(__file__).resolve().parent
+DEFAULT_CONFIG = EXPERIMENT_DIR / "config" / "base.yaml"
 
 
-def build_model_and_tokenizer(cfg, device):
-    plm_name   = cfg.get("model", "plm_name")
+def parse_args():
+    parser = argparse.ArgumentParser(
+        description="Interactive inference for the flat or hierarchical hate-speech model."
+    )
+    parser.add_argument(
+        "--model-type",
+        choices=["flat", "hier"],
+        default="flat",
+        help="Model architecture to load.",
+    )
+    parser.add_argument(
+        "--checkpoint",
+        type=Path,
+        default=None,
+        help="Checkpoint path. Defaults to checkpoints/flat_best.pt or hier_best.pt inside the augmentation experiment.",
+    )
+    parser.add_argument(
+        "--config",
+        type=Path,
+        default=DEFAULT_CONFIG,
+        help="Path to the experiment YAML configuration.",
+    )
+    parser.add_argument(
+        "--threshold",
+        type=float,
+        default=0.5,
+        help="Fine-label sigmoid threshold.",
+    )
+    return parser.parse_args()
+
+
+def build_model_and_tokenizer(cfg, device, model_type):
+    plm_name = cfg.get("model", "plm_name")
     num_coarse = cfg.get("model", "num_coarse", default=3)
-    num_fine   = cfg.get("model", "num_fine",   default=8)
-    hierarchical = cfg.get("model", "hierarchical", default=False)
-
+    num_fine = cfg.get("model", "num_fine", default=8)
     lambda_fine = cfg.get("model", "lambda_fine", default=1.0)
     lambda_hier = cfg.get("model", "lambda_hier", default=1.0)
 
-    if hierarchical:
+    if model_type == "hier":
         model = HierHateModel(
             plm_name=plm_name,
             num_coarse=num_coarse,
@@ -49,7 +79,7 @@ def build_model_and_tokenizer(cfg, device):
 
     model.to(device)
     tokenizer = AutoTokenizer.from_pretrained(plm_name)
-    return model, tokenizer, hierarchical
+    return model, tokenizer
 
 
 def load_checkpoint(model, path, device):
@@ -61,7 +91,6 @@ def load_checkpoint(model, path, device):
 
 @torch.no_grad()
 def predict_text(text, model, tokenizer, device, threshold=0.5):
-    # 토크나이즈
     enc = tokenizer(
         text,
         truncation=True,
@@ -73,15 +102,13 @@ def predict_text(text, model, tokenizer, device, threshold=0.5):
     attention_mask = enc["attention_mask"].to(device)
 
     outputs = model(input_ids=input_ids, attention_mask=attention_mask)
-    logits_coarse = outputs["logits_coarse"]  # (1, 3)
-    logits_fine   = outputs["logits_fine"]    # (1, 8)
+    logits_coarse = outputs["logits_coarse"]
+    logits_fine = outputs["logits_fine"]
 
-    # coarse: softmax → argmax
     prob_coarse = torch.softmax(logits_coarse, dim=-1)[0].cpu().tolist()
     pred_coarse_id = int(torch.argmax(logits_coarse, dim=-1)[0].cpu().item())
     pred_coarse_label = COARSE_ID2LABEL[pred_coarse_id]
 
-    # fine: sigmoid + threshold
     prob_fine = torch.sigmoid(logits_fine)[0].cpu().tolist()
     pred_fine_ids = [i for i, p in enumerate(prob_fine) if p >= threshold]
     pred_fine_labels = [FINE_ID2LABEL[i] for i in pred_fine_ids]
@@ -95,38 +122,55 @@ def predict_text(text, model, tokenizer, device, threshold=0.5):
 
 
 def main():
-    # 1) config / device
-    cfg = load_config("config/base.yaml")
+    args = parse_args()
+    cfg = load_config(str(args.config.resolve()))
     device = torch.device(cfg.device if torch.cuda.is_available() else "cpu")
 
-    # 2) 모델 / 토크나이저 로드
-    model, tokenizer, hierarchical = build_model_and_tokenizer(cfg, device)
-    model = load_checkpoint(model, CHECKPOINT_PATH, device)
+    checkpoint = args.checkpoint
+    if checkpoint is None:
+        checkpoint_name = "hier_best.pt" if args.model_type == "hier" else "flat_best.pt"
+        checkpoint = EXPERIMENT_DIR / "checkpoints" / checkpoint_name
+    elif not checkpoint.is_absolute():
+        checkpoint = (Path.cwd() / checkpoint).resolve()
+
+    if not checkpoint.exists():
+        raise FileNotFoundError(
+            f"Checkpoint not found: {checkpoint}. Train the selected model first or pass --checkpoint."
+        )
+
+    model, tokenizer = build_model_and_tokenizer(cfg, device, args.model_type)
+    model = load_checkpoint(model, checkpoint, device)
 
     print("=== Hate-speech demo ===")
-    print(f"model: {'Hier' if hierarchical else 'Flat'}")
-    print("종료하려면 'quit', 'exit' 입력")
+    print(f"model: {args.model_type}")
+    print(f"checkpoint: {checkpoint}")
+    print("Type 'quit' or 'exit' to stop.")
 
     while True:
-        text = input("\n입력 문장 > ").strip()
+        text = input("\nInput > ").strip()
         if text.lower() in ["quit", "exit", "q"]:
             break
         if not text:
             continue
 
-        out = predict_text(text, model, tokenizer, device, threshold=0.5)
+        out = predict_text(
+            text,
+            model,
+            tokenizer,
+            device,
+            threshold=args.threshold,
+        )
 
-        # 결과 출력
         print("\n[Coarse]")
-        print(f"  예측: {out['coarse_pred']}")
+        print(f"  prediction: {out['coarse_pred']}")
         for i, p in enumerate(out["coarse_prob"]):
             print(f"    {COARSE_ID2LABEL[i]}: {p:.3f}")
 
         print("[Fine]")
         if out["fine_pred"]:
-            print(f"  예측 태그: {', '.join(out['fine_pred'])}")
+            print(f"  predicted labels: {', '.join(out['fine_pred'])}")
         else:
-            print("  예측 태그: (none)")
+            print("  predicted labels: (none)")
 
         for i, p in enumerate(out["fine_prob"]):
             print(f"    {FINE_ID2LABEL[i]}: {p:.3f}")
