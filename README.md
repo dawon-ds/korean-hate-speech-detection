@@ -83,7 +83,7 @@ The final presentation defines four main obfuscation strategies:
 These rules are designed to improve robustness to spelling variation and intentional obfuscation in online text. The implementation is available in `experiments/augmentation/src/augment.py`.
 
 <p align="center">
-  <img src="augmentation_rules.png" alt="Robustness-oriented augmentation rules" width="760">
+  <img src="docs/images/augmentation_rules.png" alt="Robustness-oriented augmentation rules" width="760">
 </p>
 
 ## Flat vs. Hierarchical Classification
@@ -120,16 +120,15 @@ For comparability with the recorded project experiments, LRAP is retained for bo
 | Hierarchical + Augmentation | **0.7415** | 0.7163 | 0.8577 | **0.7292** | 0.6610 | 0.9569 |
 
 <p align="center">
-  <img src="model_results.png" alt="Recorded model results" width="900">
+  <img src="docs/images/model_results.png" alt="Recorded model results" width="900">
 </p>
 
 ### Interpretation
 
 - **Hierarchical + augmentation achieved the highest recorded Coarse Macro F1 (0.7415) and Fine Macro F1 (0.7292).**
-- Compared with the hierarchical model without augmentation, augmentation increased Coarse Macro F1 from 0.7373 to 0.7415 and Fine Macro F1 from 0.7258 to 0.7292.
 - Flat modeling retained the highest recorded Coarse Micro F1, Coarse LRAP, and Fine LRAP.
 - Flat + augmentation recorded the highest Fine Micro F1 among the four final settings.
-- Augmentation therefore did not improve every metric uniformly; the results show a trade-off between per-category balance, global prediction performance, and ranking quality.
+- Augmentation did not improve every metric uniformly; the results show a trade-off between per-category balance, global prediction performance, and ranking quality.
 
 These values are the recorded results from the final project presentation. The public repository has since received code-quality and training-stability fixes, so rerunning the current code may not reproduce the historical values exactly.
 
@@ -137,25 +136,42 @@ These values are the recorded results from the final project presentation. The p
 
 The project also included a web demo for abusive-chat filtering, connecting the trained classifier to an interactive chat interface and visualizing detected categories.
 
+The current augmentation inference script supports both flat and hierarchical checkpoints:
+
+```bash
+python experiments/augmentation/infer.py --model-type flat
+python experiments/augmentation/infer.py --model-type hier
+```
+
+A custom checkpoint or fine-label threshold can also be supplied:
+
+```bash
+python experiments/augmentation/infer.py \
+  --model-type hier \
+  --checkpoint experiments/augmentation/checkpoints/hier_best.pt \
+  --threshold 0.5
+```
+
 ## Repository Structure
 
 ```text
 korean-hate-speech-detection/
 ├── README.md
-├── augmentation_rules.png
-├── model_results.png
 ├── requirements.txt
 ├── config/
 │   └── base.yaml
+├── docs/
+│   ├── augmentation.md
+│   ├── results.md
+│   └── images/
+│       ├── augmentation_rules.png
+│       └── model_results.png
 ├── src/
 │   ├── dataset.py
 │   ├── metrics.py
 │   ├── models.py
 │   ├── trainer.py
 │   └── infer.py
-├── docs/
-│   ├── augmentation.md
-│   └── results.md
 └── experiments/
     ├── baseline/
     │   ├── config/
@@ -172,6 +188,7 @@ korean-hate-speech-detection/
         ├── infer.py
         └── src/
             ├── augment.py
+            ├── config.py
             ├── dataset.py
             ├── metrics.py
             ├── models.py
