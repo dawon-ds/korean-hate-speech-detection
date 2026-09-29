@@ -82,9 +82,7 @@ The final presentation defines four main obfuscation strategies:
 
 These rules are designed to improve robustness to spelling variation and intentional obfuscation in online text. The implementation is available in `experiments/augmentation/src/augment.py`.
 
-<p align="center">
-  <img src="docs/images/augmentation_rules.png" alt="Robustness-oriented augmentation rules" width="760">
-</p>
+![Robustness-oriented augmentation rules](https://raw.githubusercontent.com/dawon-ds/korean-hate-speech-detection/main/docs/images/augmentation_rules.png)
 
 ## Flat vs. Hierarchical Classification
 
@@ -120,9 +118,7 @@ For comparability with the recorded project experiments, LRAP is retained for bo
 | Hierarchical + Augmentation | **0.7415** | 0.7163 | 0.8577 | **0.7292** | 0.6610 | 0.9569 |
 
 
-<p align="center">
-  <img src="docs/images/%EB%AA%A8%EB%8D%B8%20%EA%B2%B0%EA%B3%BC.png" alt="Recorded model results" width="900">
-</p>
+![Recorded model results](https://raw.githubusercontent.com/dawon-ds/korean-hate-speech-detection/main/docs/images/%EB%AA%A8%EB%8D%B8%20%EA%B2%B0%EA%B3%BC.png)
 
 ### Interpretation
 
