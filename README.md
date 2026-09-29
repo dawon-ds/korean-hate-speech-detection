@@ -82,9 +82,7 @@ The final presentation defines four main obfuscation strategies:
 
 These rules are designed to improve robustness to spelling variation and intentional obfuscation in online text. The implementation is available in `experiments/augmentation/src/augment.py`.
 
-<p align="center">
-  <img src="docs/images/original_architecture.png" alt="Robustness-oriented augmentation rules" width="760">
-</p>
+![Robustness-oriented augmentation rules](./docs/images/original_architecture.png)
 
 ## Flat vs. Hierarchical Classification
 
@@ -119,9 +117,7 @@ For comparability with the recorded project experiments, LRAP is retained for bo
 | Flat + Augmentation | 0.7299 | 0.7094 | 0.8519 | 0.7085 | **0.6976** | — |
 | Hierarchical + Augmentation | **0.7415** | 0.7163 | 0.8577 | **0.7292** | 0.6610 | 0.9569 |
 
-<p align="center">
-  <img src="docs/images/original_result_1.png" alt="Recorded model results" width="900">
-</p>
+![Recorded model results](./docs/images/original_result_1.png)
 
 ### Interpretation
 
