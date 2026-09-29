@@ -82,6 +82,8 @@ The final presentation defines four main obfuscation strategies:
 
 These rules are designed to improve robustness to spelling variation and intentional obfuscation in online text. The implementation is available in `experiments/augmentation/src/augment.py`.
 
+![Robustness-oriented augmentation rules](docs/images/augmentation_rules.svg)
+
 
 ## Flat vs. Hierarchical Classification
 
@@ -123,6 +125,8 @@ For comparability with the recorded project experiments, LRAP is retained for bo
 - Flat modeling retained the highest recorded Coarse Micro F1, Coarse LRAP, and Fine LRAP.
 - Flat + augmentation recorded the highest Fine Micro F1 among the four final settings.
 - Augmentation did not improve every metric uniformly; the results show a trade-off between per-category balance, global prediction performance, and ranking quality.
+
+![Recorded model results](docs/images/model_results.svg)
 
 These values are the recorded results from the final project presentation. The public repository has since received code-quality and training-stability fixes, so rerunning the current code may not reproduce the historical values exactly.
 
