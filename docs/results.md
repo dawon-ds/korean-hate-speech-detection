@@ -18,3 +18,7 @@ The following values are preserved from the final project materials.
 - HITL neutral-data experiments also did not produce a clear overall F1/LRAP gain in the final materials.
 
 The Fine LRAP value for Flat + Augmentation is left unavailable rather than inferred.
+
+## Reproduction Scope
+
+These are historical presentation results. The public code has received training and evaluation fixes, and the original datasets, lexical resources, and checkpoints are not included. The current configuration enables augmentation; set `augment.use_augment` to `false` to run the corresponding non-augmented settings. A new run should record its own metrics and configuration rather than being attributed to this table.
