@@ -1,6 +1,8 @@
-# Korean Hate Speech Detection
+# Korean Hate Speech Detection | Multi-label NLP Classification
 
-**Multi-label Korean NLP Classification with PLM Comparison, HITL Data, Robustness Augmentation, and Hierarchical Modeling**
+**PLM comparison, HITL data, robustness augmentation, and hierarchical modeling · 2025**
+
+[Portfolio](https://app.notion.com/p/5b168564df5a8203a318012d2ffd632c) · [Results](docs/results.md) · [Augmentation](docs/augmentation.md)
 
 This project explores context-aware Korean online hate-speech classification using pretrained language models, UnSmile + HateScore data, robustness-oriented augmentation, and flat vs. hierarchical prediction structures.
 
@@ -47,7 +49,7 @@ Hyperparameter exploration in the project covered:
 - **Learning rate:** 1e-5–5e-5
 - **Batch size:** 16 or 32
 
-Recorded baseline scores:
+Recorded baseline scores from the final presentation are shown below. **The available source materials do not identify the exact metric for this single score**, so these values are left unlabeled and should not be directly compared with the named metrics in the final results table.
 
 | Dataset | BERT | ELECTRA | RoBERTa |
 | --- | ---: | ---: | ---: |
@@ -132,9 +134,9 @@ These values are the recorded results from the final project presentation. The p
 
 ## Demo
 
-The project also included a web demo for abusive-chat filtering, connecting the trained classifier to an interactive chat interface and visualizing detected categories.
+The project included a web demo for abusive-chat filtering. **The original web interface is not included in this public repository**; the available inference script is an interactive console interface.
 
-The current augmentation inference script supports both flat and hierarchical checkpoints:
+The augmentation inference script supports flat and hierarchical checkpoints. Trained checkpoints are not provided; prepare a compatible checkpoint first. By default, inference loads `flat_best.pt` or `hier_best.pt` from `experiments/augmentation/checkpoints/`:
 
 ```bash
 python experiments/augmentation/infer.py --model-type flat
@@ -163,7 +165,7 @@ korean-hate-speech-detection/
 │   ├── results.md
 │   └── images/
 │       ├── augmentation_rules.png
-│       └── model_results.png
+│       └── 모델 결과.png
 ├── src/
 │   ├── dataset.py
 │   ├── metrics.py
@@ -202,14 +204,30 @@ pip install -r requirements.txt
 
 ## Running the Experiments
 
-Prepare the required datasets in each experiment's `data/` directory first.
+Run these commands from the repository root. The two experiment pipelines require different prepared data formats.
+
+### Baseline data
+
+Place `hatescore.csv`, `unsmile_train.csv`, and `unsmile_valid.csv` under `experiments/baseline/data/`. The integration script expects HateScore columns `macrolabel`, `microlabel`, and `comment`, and UnSmile's `문장` and category-label columns. Configure the baseline model and training settings in `experiments/baseline/config/text_classification.yaml`.
 
 ```bash
 python experiments/baseline/utils/build_combined_dataset.py
 python experiments/baseline/scripts/train_baseline.py
 ```
 
-For the augmentation experiments:
+### Flat / hierarchical data
+
+Prepare `experiments/augmentation/data/merged_dataset_v1.1.csv`, or change `data.csv_path` in `experiments/augmentation/config/base.yaml`.
+
+| Columns | Required values |
+| --- | --- |
+| `text` | Korean input text |
+| `hate_label` | `clean`, `offensive`, or `hate` |
+| `gender`, `LGBT`, `age`, `region`, `race`, `religion`, `socioeconomic`, `etc` | Binary fine-label indicators (0 or 1) |
+
+The baseline integration script does not produce this augmentation schema; the prepared merged dataset must be supplied separately. The augmentation loader splits the original data into train/validation/test sets before augmenting training examples.
+
+Set `augment.use_augment` to `false` for experiments without augmentation and `true` for experiments with augmentation. The checked-in configuration enables augmentation; simply running both scripts does not cover all four settings in the results table.
 
 ```bash
 python experiments/augmentation/train_flat.py
@@ -217,6 +235,16 @@ python experiments/augmentation/train_hier.py
 ```
 
 The augmentation scripts resolve configuration, dataset, log, and checkpoint paths relative to `experiments/augmentation/`.
+
+## Limitations & Future Work
+
+HateScore integration, hierarchical modeling, and augmentation did not improve all metrics consistently. The baseline presentation's single score also lacks an identified metric. Future comparisons should record the metric, split, threshold, and augmentation settings together.
+
+Raw datasets, complete lexical resources, and final experiment checkpoints are not included. The historical result table is not a claim that the current public configuration reproduces those values exactly.
+
+## Review
+
+The project examined how dataset composition, altered expressions, and label hierarchy affect multi-label classification. Its main finding is the trade-off across Macro F1, Micro F1, and LRAP, which calls for evaluation from several perspectives.
 
 ## Notes
 
