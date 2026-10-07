@@ -2,7 +2,7 @@
 
 **PLM comparison, HITL data, robustness augmentation, and hierarchical modeling · 2025**
 
-[Portfolio](https://app.notion.com/p/5b168564df5a8203a318012d2ffd632c) · [Results](docs/results.md) · [Augmentation](docs/augmentation.md)
+[Portfolio](https://incredible-march-0ef.notion.site/5b168564df5a8203a318012d2ffd632c) · [Results](docs/results.md) · [Augmentation](docs/augmentation.md)
 
 This project explores context-aware Korean online hate-speech classification using pretrained language models, UnSmile + HateScore data, robustness-oriented augmentation, and flat vs. hierarchical prediction structures.
 
