@@ -18,13 +18,13 @@ This project explores context-aware Korean online hate-speech classification usi
 - **Evaluation:** Macro F1, Micro F1, LRAP
 - **Experiments:** PLM comparison, HITL data integration, Hybrid Lexicon augmentation, Flat vs. Hierarchical modeling
 
-## Motivation
+## Data
+
+### Motivation
 
 Online hate speech can target multiple social groups at the same time, while abusive or controversial expressions may also be neutral depending on context. A simple hate/non-hate classifier therefore cannot fully represent the structure of Korean online hate speech.
 
 The project focuses on multi-label classification and robustness to intentionally obfuscated expressions, with the eventual application of filtering abusive chat content.
-
-## Dataset
 
 The experiments combine two Korean hate-speech datasets:
 
@@ -35,7 +35,9 @@ The combined dataset was used to examine whether additional neutral/context-sens
 
 Large raw datasets are not included in this repository. Place the required files under the corresponding experiment `data/` directory before running the scripts.
 
-## Baseline PLM Experiments
+## Approach
+
+### Baseline PLM Experiments
 
 The baseline stage compared Korean pretrained language models:
 
@@ -58,13 +60,13 @@ Recorded baseline scores from the final presentation are shown below. **The avai
 
 The final hierarchical/augmentation experiments used KLUE BERT as the selected backbone.
 
-## HITL Experiment
+### HITL Experiment
 
 HateScore was introduced to examine the effect of Human-in-the-Loop and neutral-data expansion. The project presentation showed examples where the additional data helped correct keyword-driven errors and improved predictions for some contextually complex multi-label cases.
 
 At the aggregate level, however, the baseline comparison did not show a clear universal gain from simply adding HateScore. The HITL result is therefore interpreted as a context/decision-boundary experiment rather than a blanket performance improvement.
 
-## Hybrid Lexicon Construction
+### Hybrid Lexicon Construction
 
 Instead of relying on large-scale additional crawling, the project constructed an enhanced lexicon from two sources:
 
@@ -73,7 +75,7 @@ Instead of relying on large-scale additional crawling, the project constructed a
 
 The two sources are merged through deduplication and filtering, including removal of unsuitable numeric/general-noun candidates. This allows the augmentation pipeline to capture variants that were absent from the initial manual lexicon.
 
-## Robustness-oriented Augmentation
+### Robustness-oriented Augmentation
 
 The final presentation defines four main obfuscation strategies:
 
@@ -86,7 +88,7 @@ These rules are designed to improve robustness to spelling variation and intenti
 
 ![Robustness-oriented augmentation rules](https://raw.githubusercontent.com/dawon-ds/korean-hate-speech-detection/main/docs/images/augmentation_rules.png)
 
-## Flat vs. Hierarchical Classification
+### Flat vs. Hierarchical Classification
 
 The final stage compares two prediction structures.
 
@@ -102,7 +104,7 @@ The hierarchical model adds a coarse–fine consistency term to the classificati
 
 The current public implementation uses a differentiable probability-based consistency loss so that the hierarchical term contributes to gradient updates.
 
-## Evaluation
+### Evaluation
 
 The original project used **F1-score** and **LRAP (Label Ranking Average Precision)** as the main evaluation measures. LRAP evaluates how highly the model ranks the ground-truth labels and is particularly useful for the fine-grained multi-label task.
 
@@ -119,7 +121,6 @@ For comparability with the recorded project experiments, LRAP is retained for bo
 | Flat + Augmentation | 0.7299 | 0.7094 | 0.8519 | 0.7085 | **0.6976** | — |
 | Hierarchical + Augmentation | **0.7415** | 0.7163 | 0.8577 | **0.7292** | 0.6610 | 0.9569 |
 
-
 ![Recorded model results](https://raw.githubusercontent.com/dawon-ds/korean-hate-speech-detection/main/docs/images/%EB%AA%A8%EB%8D%B8%20%EA%B2%B0%EA%B3%BC.png)
 
 ### Interpretation
@@ -128,29 +129,6 @@ For comparability with the recorded project experiments, LRAP is retained for bo
 - Flat modeling retained the highest recorded Coarse Micro F1, Coarse LRAP, and Fine LRAP.
 - Flat + augmentation recorded the highest Fine Micro F1 among the four final settings.
 - Augmentation did not improve every metric uniformly; the results show a trade-off between per-category balance, global prediction performance, and ranking quality.
-
-
-These values are the recorded results from the final project presentation. The public repository has since received code-quality and training-stability fixes, so rerunning the current code may not reproduce the historical values exactly.
-
-## Demo
-
-The project included a web demo for abusive-chat filtering. **The original web interface is not included in this public repository**; the available inference script is an interactive console interface.
-
-The augmentation inference script supports flat and hierarchical checkpoints. Trained checkpoints are not provided; prepare a compatible checkpoint first. By default, inference loads `flat_best.pt` or `hier_best.pt` from `experiments/augmentation/checkpoints/`:
-
-```bash
-python experiments/augmentation/infer.py --model-type flat
-python experiments/augmentation/infer.py --model-type hier
-```
-
-A custom checkpoint or fine-label threshold can also be supplied:
-
-```bash
-python experiments/augmentation/infer.py \
-  --model-type hier \
-  --checkpoint experiments/augmentation/checkpoints/hier_best.pt \
-  --threshold 0.5
-```
 
 ## Repository Structure
 
@@ -196,13 +174,33 @@ korean-hate-speech-detection/
             └── utils.py
 ```
 
-## Installation
+## Usage
+
+### Demo
+
+The project included a web demo for abusive-chat filtering. **The original web interface is not included in this public repository**; the available inference script is an interactive console interface.
+
+The augmentation inference script supports flat and hierarchical checkpoints. Trained checkpoints are not provided; prepare a compatible checkpoint first. By default, inference loads `flat_best.pt` or `hier_best.pt` from `experiments/augmentation/checkpoints/`:
+
+```bash
+python experiments/augmentation/infer.py --model-type flat
+python experiments/augmentation/infer.py --model-type hier
+```
+
+A custom checkpoint or fine-label threshold can also be supplied:
+
+```bash
+python experiments/augmentation/infer.py \
+  --model-type hier \
+  --checkpoint experiments/augmentation/checkpoints/hier_best.pt \
+  --threshold 0.5
+```
 
 ```bash
 pip install -r requirements.txt
 ```
 
-## Running the Experiments
+### Running the Experiments
 
 Run these commands from the repository root. The two experiment pipelines require different prepared data formats.
 
@@ -236,21 +234,20 @@ python experiments/augmentation/train_hier.py
 
 The augmentation scripts resolve configuration, dataset, log, and checkpoint paths relative to `experiments/augmentation/`.
 
-## Limitations & Future Work
+### Data & Artifacts
+
+- Large datasets, model checkpoints, training logs, and large lexical resource files are excluded from the repository.
+- The repository contains preprocessing, PLM baseline experiments, augmentation, flat/hierarchical training, evaluation, and inference code used across the project experiments.
+
+## Limitations
 
 HateScore integration, hierarchical modeling, and augmentation did not improve all metrics consistently. The baseline presentation's single score also lacks an identified metric. Future comparisons should record the metric, split, threshold, and augmentation settings together.
 
-Raw datasets, complete lexical resources, and final experiment checkpoints are not included. The historical result table is not a claim that the current public configuration reproduces those values exactly.
+Raw datasets, complete lexical resources, and final experiment checkpoints are not included.
 
 ## Review
 
 The project examined how dataset composition, altered expressions, and label hierarchy affect multi-label classification. Its main finding is the trade-off across Macro F1, Micro F1, and LRAP, which calls for evaluation from several perspectives.
-
-## Notes
-
-- Large datasets, model checkpoints, training logs, and large lexical resource files are excluded from the repository.
-- The repository contains preprocessing, PLM baseline experiments, augmentation, flat/hierarchical training, evaluation, and inference code used across the project experiments.
-- Recorded presentation metrics are preserved as historical experimental results; current code-quality fixes are not presented as reruns of those experiments.
 
 ## Tech Stack
 
